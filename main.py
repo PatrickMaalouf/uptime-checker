@@ -73,6 +73,20 @@ def send_email_alert(failures, smtp_host, smtp_port, smtp_user, smtp_pass, to_ad
         server.send_message(msg)
 
 
+def send_email_success(results, smtp_host, smtp_port, smtp_user, smtp_pass, to_addr):
+    """Send a summary email when all endpoints are healthy."""
+    body = "All endpoints are UP and responding normally.\n\n"
+    body += "\n".join(f"✅ {r['url']} — {r['elapsed_ms']}ms" for r in results)
+    msg = MIMEText(body)
+    msg["Subject"] = f"Uptime OK: All {len(results)} endpoint(s) healthy"
+    msg["From"] = smtp_user
+    msg["To"] = to_addr
+    with smtplib.SMTP(smtp_host, smtp_port) as server:
+        server.starttls()
+        server.login(smtp_user, smtp_pass)
+        server.send_message(msg)
+
+
 def run(config_path: str, once: bool) -> int:
     cfg = load_config(config_path)
     urls = cfg["urls"]
@@ -107,6 +121,14 @@ def run(config_path: str, once: bool) -> int:
             log.warning("Email alert not configured; skipping.")
     else:
         log.info("All endpoints healthy.")
+        if smtp_host and smtp_user and alert_to:
+            try:
+                send_email_success(results, smtp_host, smtp_port, smtp_user, smtp_pass, alert_to)
+                log.info("Success email sent.")
+            except Exception as e:
+                log.error(f"Failed to send success email: {e}")
+        else:
+            log.warning("Email not configured; skipping success email.")
 
     if slow:
         log.warning(f"{len(slow)} endpoint(s) slow (>{slow_threshold_ms}ms)")
