@@ -104,6 +104,9 @@ The process exits with code `1` if any endpoint is down, and `0` if all are heal
 
 ```
 uptime-checker/
+├── .github/
+│   └── workflows/
+│       └── uptime.yml   # GitHub Actions scheduled workflow
 ├── main.py              # Core logic: endpoint checking, alerting, CLI
 ├── config.yaml          # List of URLs and monitoring thresholds
 ├── requirements.txt     # Python dependencies
@@ -125,7 +128,7 @@ uptime-checker/
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/uptime-checker.git
+git clone https://github.com/PatrickMaalouf/uptime-checker.git
 cd uptime-checker
 
 # 2. Create and activate a virtual environment
@@ -187,14 +190,23 @@ python main.py
 python main.py --config /path/to/custom-config.yaml
 ```
 
-### Automate with Cron (Linux/macOS)
+### Automated via GitHub Actions (Active ✅)
+
+This project includes a GitHub Actions workflow (`.github/workflows/uptime.yml`) that runs the checker **every 5 minutes** automatically — no server or cron setup required.
+
+- **Schedule:** `*/5 * * * *` (every 5 minutes)
+- **Manual trigger:** Go to **Actions** → **Uptime Check** → **Run workflow**
+- **Secrets:** SMTP credentials are stored as [GitHub Repository Secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets) — never exposed in code.
+- **Failure detection:** The workflow exits with code `1` when endpoints are down, marking the run as failed in the Actions dashboard.
+
+### Alternative: Cron (Linux/macOS)
 
 ```bash
 # Check every 5 minutes
 */5 * * * * cd /path/to/uptime-checker && /path/to/venv/bin/python main.py >> /var/log/uptime.log 2>&1
 ```
 
-### Automate with Task Scheduler (Windows)
+### Alternative: Task Scheduler (Windows)
 
 Create a scheduled task that runs:
 ```
@@ -243,18 +255,19 @@ C:\path\to\venv\Scripts\python.exe C:\path\to\uptime-checker\main.py
 | **Non-zero exit codes** | Enables integration with cron, CI/CD, and monitoring systems that rely on exit codes to detect failure. |
 | **Email over Slack** | Email is universally accessible, requires no third-party webhook setup, and works across all organizations. |
 | **STARTTLS encryption** | SMTP traffic is encrypted in transit — credentials and alert content are never sent in plaintext. |
+| **GitHub Actions for scheduling** | Free hosted cron — no server to maintain, runs on Ubuntu runners, and secrets are managed via GitHub's encrypted secrets. |
 
 ---
 
 ## Future Improvements
 
+- [x] **GitHub Actions workflow** — runs the checker on a schedule every 5 minutes via GitHub-hosted runners.
 - [ ] **Retry logic** — retry failed endpoints before alerting to reduce false positives from transient network issues.
 - [ ] **HTML email reports** — richer alert emails with color-coded status tables.
 - [ ] **Response body validation** — check that responses contain expected content, not just a 200 status.
 - [ ] **Persistent logging** — write results to a SQLite database or CSV for historical trend analysis.
 - [ ] **Dashboard** — a simple web UI to visualize uptime history over time.
 - [ ] **Multi-channel alerting** — add Slack, Microsoft Teams, or SMS as additional notification channels.
-- [ ] **GitHub Actions workflow** — run the checker on a schedule directly in CI as a free hosted cron alternative.
 
 ---
 
@@ -269,6 +282,7 @@ C:\path\to\venv\Scripts\python.exe C:\path\to\uptime-checker\main.py
 | **smtplib** (stdlib) | SMTP email sending with TLS encryption |
 | **argparse** (stdlib) | Command-line argument parsing |
 | **logging** (stdlib) | Structured, timestamped console output |
+| **GitHub Actions** | Scheduled automation — runs checks every 5 minutes on hosted runners |
 
 ---
 
