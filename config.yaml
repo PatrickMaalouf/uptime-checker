@@ -1,0 +1,7 @@
+urls:
+  - https://example.com
+  - https://api.github.com
+  - https://your-client-site.com
+
+timeout_seconds: 10
+slow_threshold_ms: 2000
